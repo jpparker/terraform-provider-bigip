@@ -206,7 +206,8 @@ func resourceBigipLtmNodeRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	} else {
 		// xxx.xxx.xxx.xxx(%x)
-		regex := regexp.MustCompile(`((?:[0-9]{1,3}\.){3}[0-9]{1,3})(?:\%\d+)?`)
+		// x:x(%x)
+		regex := regexp.MustCompile(`((?:(?:[0-9]{1,3}\.){3}[0-9]{1,3})|(?:.*:[^%]*))(?:\%\d+)?`)
 		address := regex.FindStringSubmatch(node.Address)
 		log.Println("[INFO] Address: " + address[1])
 		if err := d.Set("address", node.Address); err != nil {
@@ -258,7 +259,7 @@ func resourceBigipLtmNodeUpdate(d *schema.ResourceData, meta interface{}) error 
 
 	name := d.Id()
 	address := d.Get("address").(string)
-	r, _ := regexp.Compile("^((?:[0-9]{1,3}.){3}[0-9]{1,3})|(.*:.*)$")
+	r, _ := regexp.Compile("^((?:[0-9]{1,3}.){3}[0-9]{1,3})|(.*:[^%]*)$")
 
 	var node *bigip.Node
 	if r.MatchString(address) {
