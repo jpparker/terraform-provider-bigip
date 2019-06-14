@@ -185,7 +185,7 @@ func resourceBigipLtmNodeRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	} else {
 		// xxx.xxx.xxx.xxx(%x)
-                // x:x(%x)
+		// x:x(%x)
 		regex := regexp.MustCompile(`((?:(?:[0-9]{1,3}\.){3}[0-9]{1,3})|(?:.*:.*))(?:\%\d+)?`)
 		address := regex.FindStringSubmatch(node.Address)
 		if err := d.Set("address", address[1]); err != nil {
