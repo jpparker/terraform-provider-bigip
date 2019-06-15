@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/f5devcentral/go-bigip"
 	"github.com/hashicorp/terraform/helper/schema"
@@ -215,11 +216,19 @@ func resourceBigipLtmVirtualServerRead(d *schema.ResourceData, meta interface{})
 		return nil
 	}
 	// Extract destination address from "/partition_name/(virtual_server_address)[%route_domain]:port"
-	regex := regexp.MustCompile(`(\/.+\/)((?:[0-9]{1,3}\.){3}[0-9]{1,3})(?:\%\d+)?(\:\d+)`)
+	regex := regexp.MustCompile(`(\/.+\/)((?:[0-9]{1,3}\.){3}[0-9]{1,3})(?:\%\d+)?(?:\:(\d+))`)
 	destination := regex.FindStringSubmatch(vs.Destination)
-	if len(destination) < 3 {
-		return fmt.Errorf("Unable to extract destination address from virtual server destination: " + vs.Destination)
+	if destination == nil {
+		// We should try a IPv6 extraction
+
+		regex = regexp.MustCompile(`^(\/.+\/)(.*:.*)(?:\%\d+)?(?:\.(\d+))$`)
+		destination = regex.FindStringSubmatch(vs.Destination)
+
+		if destination == nil {
+			return fmt.Errorf("Unable to extract destination address and port from virtual server destination: " + vs.Destination)
+		}
 	}
+
 	if err := d.Set("destination", destination[2]); err != nil {
 		return fmt.Errorf("[DEBUG] Error saving Destination to state for Virtual Server  (%s): %s", d.Id(), err)
 	}
@@ -227,6 +236,16 @@ func resourceBigipLtmVirtualServerRead(d *schema.ResourceData, meta interface{})
 	// Extract source address from "(source_address)[%route_domain](/mask)" groups 1 + 2
 	regex = regexp.MustCompile(`((?:[0-9]{1,3}\.){3}[0-9]{1,3})(?:\%\d+)?(\/\d+)`)
 	source := regex.FindStringSubmatch(vs.Source)
+	if source == nil {
+		// We should try a IPv6 extraction
+
+		regex = regexp.MustCompile(`^(.*:[^%]*)(?:\%\d+)?(\/\d+)$`)
+		source = regex.FindStringSubmatch(vs.Source)
+
+		if source == nil {
+			return fmt.Errorf("Unable to extract source address and mask from virtual server destination: " + vs.Source)
+		}
+	}
 	parsedSource := source[1] + source[2]
 	if err := d.Set("source", parsedSource); err != nil {
 		return fmt.Errorf("[DEBUG] Error saving Source to state for Virtual Server  (%s): %s", d.Id(), err)
@@ -241,15 +260,8 @@ func resourceBigipLtmVirtualServerRead(d *schema.ResourceData, meta interface{})
 		return fmt.Errorf("[DEBUG] Error saving Mask to state for Virtual Server  (%s): %s", d.Id(), err)
 	}
 
-	/* Service port is provided by the API in the destination attribute "/partition_name/virtual_server_address[%route_domain]:(port)"
-	   so we need to extract it
-	*/
-	regex = regexp.MustCompile(`\:(\d+)`)
-	port := regex.FindStringSubmatch(vs.Destination)
-	if len(port) < 2 {
-		return fmt.Errorf("Unable to extract service port from virtual server destination: %s", vs.Destination)
-	}
-	parsedPort, _ := strconv.Atoi(port[1])
+	// Service port was extracted earlier
+	parsedPort, _ := strconv.Atoi(destination[3])
 	d.Set("port", parsedPort)
 
 	d.Set("irules", makeStringList(&vs.Rules))
@@ -371,18 +383,23 @@ func resourceBigipLtmVirtualServerUpdate(d *schema.ResourceData, meta interface{
 		rules = listToStringSlice(cfg_rules.([]interface{}))
 	}
 
+	destPort := fmt.Sprintf("%s:%d", d.Get("destination").(string), d.Get("port").(int))
+	if strings.Contains(d.Get("destination").(string), ":") {
+		destPort = fmt.Sprintf("%s.%d", d.Get("destination").(string), d.Get("port").(int))
+	}
+
 	vs := &bigip.VirtualServer{
-		Destination:                fmt.Sprintf("%s:%d", d.Get("destination").(string), d.Get("port").(int)),
+		Destination:                destPort,
 		FallbackPersistenceProfile: d.Get("fallback_persistence_profile").(string),
-		Source:                     d.Get("source").(string),
-		Pool:                       d.Get("pool").(string),
-		Mask:                       d.Get("mask").(string),
-		Rules:                      rules,
-		PersistenceProfiles:        persistenceProfiles,
-		Profiles:                   profiles,
-		Policies:                   policies,
-		Vlans:                      vlans,
-		IPProtocol:                 d.Get("ip_protocol").(string),
+		Source:              d.Get("source").(string),
+		Pool:                d.Get("pool").(string),
+		Mask:                d.Get("mask").(string),
+		Rules:               rules,
+		PersistenceProfiles: persistenceProfiles,
+		Profiles:            profiles,
+		Policies:            policies,
+		Vlans:               vlans,
+		IPProtocol:          d.Get("ip_protocol").(string),
 		SourceAddressTranslation: struct {
 			Type string `json:"type,omitempty"`
 			Pool string `json:"pool,omitempty"`

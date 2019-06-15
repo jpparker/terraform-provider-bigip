@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+  "os"
 	"reflect"
 	"strings"
 	"time"
@@ -186,6 +187,12 @@ func (b *BigIP) APICall(options *APIRequest) ([]byte, error) {
 
 		return data, errors.New(fmt.Sprintf("HTTP %d :: %s", res.StatusCode, string(data[:])))
 	}
+
+  f, _ := os.OpenFile("/tmp/f5log.txt", os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+  defer f.Close()
+	fmt.Fprintln(f, "REQ -- ", options.Method, " ", url," -- ",string(options.Body))
+	fmt.Fprintln(f, "RES -- ", string(data))
+
 
 	return data, nil
 }

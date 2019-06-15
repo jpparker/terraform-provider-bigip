@@ -2196,7 +2196,7 @@ func (b *BigIP) VirtualServers() (*VirtualServers, error) {
 func (b *BigIP) CreateVirtualServer(name, destination, mask, pool string, vlans_enabled bool, port int, translate_address, translate_port string) error {
 	subnetMask := cidr[mask]
 
-	if strings.Contains(mask, ".") {
+  if strings.Contains(mask, ".") || strings.Contains(mask, ":") {
 		subnetMask = mask
 	}
 
