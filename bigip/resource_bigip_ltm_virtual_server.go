@@ -39,7 +39,7 @@ func resourceBigipLtmVirtualServer() *schema.Resource {
 			"source": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "0.0.0.0/0",
+				Computed:    true,
 				Description: "Source IP and mask for the virtual server",
 			},
 
@@ -58,7 +58,7 @@ func resourceBigipLtmVirtualServer() *schema.Resource {
 			"mask": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     "255.255.255.255",
+				Computed:    true,
 				Description: "Mask can either be in CIDR notation or decimal, i.e.: \"24\" or \"255.255.255.0\". A CIDR mask of \"0\" is the same as \"0.0.0.0\"",
 			},
 
@@ -163,8 +163,35 @@ func resourceBigipLtmVirtualServer() *schema.Resource {
 	}
 }
 
+func resourceBigipLtmVirtualServerAttrDefaults(d *schema.ResourceData) {
+	_, hasMask := d.GetOk("mask")
+	_, hasSource := d.GetOk("source")
+
+	// Set default mask if nil
+	if !hasMask {
+		// looks like IPv6, lets set to /128
+		if strings.Contains(d.Get("destination").(string), ":") {
+			d.Set("mask", "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")
+		} else { // /32 for IPv4
+			d.Set("mask", "255.255.255.255")
+		}
+	}
+
+	// set default source if nil
+	if !hasSource {
+		// looks like IPv6, lets set to ::/0
+		if strings.Contains(d.Get("destination").(string), ":") {
+			d.Set("source", "::/0")
+		} else { // 0.0.0.0/0
+			d.Set("source", "0.0.0.0/0")
+		}
+	}
+}
+
 func resourceBigipLtmVirtualServerCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*bigip.BigIP)
+
+	resourceBigipLtmVirtualServerAttrDefaults(d)
 
 	name := d.Get("name").(string)
 	port := d.Get("port").(int)
@@ -341,6 +368,8 @@ func resourceBigipLtmVirtualServerExists(d *schema.ResourceData, meta interface{
 
 func resourceBigipLtmVirtualServerUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*bigip.BigIP)
+
+	resourceBigipLtmVirtualServerAttrDefaults(d)
 
 	name := d.Id()
 
