@@ -248,7 +248,7 @@ func resourceBigipLtmVirtualServerRead(d *schema.ResourceData, meta interface{})
 	if destination == nil {
 		// We should try a IPv6 extraction
 
-		regex = regexp.MustCompile(`^(\/.+\/)(.*:.*)(?:\%\d+)?(?:\.(\d+))$`)
+		regex = regexp.MustCompile(`^(\/.+\/)(.*:[^%]*)(?:\%\d+)?(?:\.(\d+))$`)
 		destination = regex.FindStringSubmatch(vs.Destination)
 
 		if destination == nil {

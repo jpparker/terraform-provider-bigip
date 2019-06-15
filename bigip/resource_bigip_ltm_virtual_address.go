@@ -24,6 +24,7 @@ func resourceBigipLtmVirtualAddress() *schema.Resource {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "Name of the virtual address",
+				ForceNew:     true,
 				ValidateFunc: validateF5Name,
 			},
 
