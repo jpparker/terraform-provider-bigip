@@ -30,11 +30,10 @@ func resourceBigipLtmMonitor() *schema.Resource {
 			},
 
 			"parent": {
-				Type:         schema.TypeString,
-				Required:     true,
-				ValidateFunc: validateParent,
-				ForceNew:     true,
-				Description:  "Existing monitor to inherit from. Must be one of /Common/http, /Common/https, /Common/icmp or /Common/gateway-icmp.",
+				Type:        schema.TypeString,
+				Required:    true,
+				ForceNew:    true,
+				Description: "Existing monitor to inherit from. Must be one of /Common/http, /Common/https, /Common/icmp or /Common/gateway-icmp.",
 			},
 			"defaults_from": {
 				Type:        schema.TypeString,

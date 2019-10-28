@@ -547,7 +547,7 @@ type VirtualAddress struct {
 	ICMPEcho              bool
 	InheritedTrafficGroup bool
 	Mask                  string
-	RouteAdvertisement    bool
+	RouteAdvertisement    string
 	ServerScope           string
 	TrafficGroup          string
 	Unit                  int
@@ -567,7 +567,7 @@ type virtualAddressDTO struct {
 	ICMPEcho              string `json:"icmpEcho,omitempty" bool:"enabled"`
 	InheritedTrafficGroup string `json:"inheritedTrafficGroup,omitempty" bool:"yes"`
 	Mask                  string `json:"mask,omitempty"`
-	RouteAdvertisement    string `json:"routeAdvertisement,omitempty" bool:"enabled"`
+	RouteAdvertisement    string `json:"routeAdvertisement,omitempty"`
 	ServerScope           string `json:"serverScope,omitempty"`
 	TrafficGroup          string `json:"trafficGroup,omitempty"`
 	Unit                  int    `json:"unit,omitempty"`
@@ -2196,13 +2196,20 @@ func (b *BigIP) VirtualServers() (*VirtualServers, error) {
 func (b *BigIP) CreateVirtualServer(name, destination, mask, pool string, vlans_enabled bool, port int, translate_address, translate_port string) error {
 	subnetMask := cidr[mask]
 
-	if strings.Contains(mask, ".") {
+	if strings.Contains(mask, ".") || strings.Contains(mask, ":") {
 		subnetMask = mask
+	}
+
+	destPort := fmt.Sprintf("%s:%d", destination, port)
+
+	// IPv6 Destinations use a "." port delimeter
+	if strings.Contains(destination, ":") {
+		destPort = fmt.Sprintf("%s.%d", destination, port)
 	}
 
 	config := &VirtualServer{
 		Name:             name,
-		Destination:      fmt.Sprintf("%s:%d", destination, port),
+		Destination:      destPort,
 		Mask:             subnetMask,
 		Pool:             pool,
 		TranslateAddress: translate_address,
@@ -2499,7 +2506,7 @@ func (b *BigIP) GetPolicy(name string) (*Policy, error) {
 	}
 	p.Rules = rules.Items
 
-	for i, _ := range p.Rules {
+	for i := range p.Rules {
 		var a PolicyRuleActions
 		var c PolicyRuleConditions
 
@@ -2520,12 +2527,12 @@ func (b *BigIP) GetPolicy(name string) (*Policy, error) {
 
 func normalizePolicy(p *Policy) {
 	//f5 doesn't seem to automatically handle setting the ordinal
-	for ri, _ := range p.Rules {
+	for ri := range p.Rules {
 		p.Rules[ri].Ordinal = ri
-		for ai, _ := range p.Rules[ri].Actions {
+		for ai := range p.Rules[ri].Actions {
 			p.Rules[ri].Actions[ai].Name = fmt.Sprintf("%d", ai)
 		}
-		for ci, _ := range p.Rules[ri].Conditions {
+		for ci := range p.Rules[ri].Conditions {
 			p.Rules[ri].Conditions[ci].Name = fmt.Sprintf("%d", ci)
 		}
 	}

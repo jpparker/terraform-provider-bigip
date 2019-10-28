@@ -25,6 +25,7 @@ func resourceBigipLtmVirtualAddress() *schema.Resource {
 				Required:     true,
 				Description:  "Name of the virtual address",
 				ValidateFunc: validateF5Name,
+				ForceNew:     true,
 			},
 
 			"arp": {
@@ -63,9 +64,9 @@ func resourceBigipLtmVirtualAddress() *schema.Resource {
 			},
 
 			"advertize_route": {
-				Type:        schema.TypeBool,
+				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     false,
+				Default:     "selective",
 				Description: "Enabled dynamic routing of the address",
 			},
 
@@ -186,7 +187,7 @@ func hydrateVirtualAddress(d *schema.ResourceData) *bigip.VirtualAddress {
 		ConnectionLimit:    d.Get("conn_limit").(int),
 		Enabled:            d.Get("enabled").(bool),
 		ICMPEcho:           d.Get("icmp_echo").(bool),
-		RouteAdvertisement: d.Get("advertize_route").(bool),
+		RouteAdvertisement: d.Get("advertize_route").(string),
 		TrafficGroup:       d.Get("traffic_group").(string),
 		AutoDelete:         d.Get("auto_delete").(bool),
 	}
