@@ -193,7 +193,7 @@ func hydrateVirtualAddress(d *schema.ResourceData) *bigip.VirtualAddress {
 		ConnectionLimit:    d.Get("conn_limit").(int),
 		Enabled:            d.Get("enabled").(bool),
 		ICMPEcho:           d.Get("icmp_echo").(bool),
-		RouteAdvertisement: d.Get("advertize_route").(bool),
+		RouteAdvertisement: d.Get("advertize_route").(string),
 		TrafficGroup:       d.Get("traffic_group").(string),
 		AutoDelete:         d.Get("auto_delete").(bool),
 	}

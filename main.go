@@ -8,7 +8,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
-	"github.com/tpretz/terraform-provider-bigip/bigip"
+	"github.com/terraform-providers/terraform-provider-bigip/bigip"
 )
 
 func main() {

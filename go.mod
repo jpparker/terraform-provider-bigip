@@ -3,7 +3,7 @@
 //This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 //If a copy of the MPL was not distributed with this file,You can obtain one at https://mozilla.org/MPL/2.0/.
 
-module github.com/tpretz/terraform-provider-bigip
+module github.com/terraform-providers/terraform-provider-bigip
 
 require (
 	github.com/f5devcentral/go-bigip v0.0.0-20200331095915-28c1bbeb254d
@@ -13,5 +13,7 @@ require (
 	github.com/stretchr/testify v1.3.0
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 )
+
+replace github.com/f5devcentral/go-bigip => github.com/tpretz/go-bigip v1.0.1
 
 go 1.13
