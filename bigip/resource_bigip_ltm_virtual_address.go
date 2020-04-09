@@ -63,9 +63,9 @@ func resourceBigipLtmVirtualAddress() *schema.Resource {
 			},
 
 			"icmp_echo": {
-				Type:        schema.TypeBool,
+				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     true,
+				Default:     "selective",
 				Description: "Enable/Disable ICMP response to the virtual address",
 			},
 
@@ -192,7 +192,7 @@ func hydrateVirtualAddress(d *schema.ResourceData) *bigip.VirtualAddress {
 		ARP:                d.Get("arp").(bool),
 		ConnectionLimit:    d.Get("conn_limit").(int),
 		Enabled:            d.Get("enabled").(bool),
-		ICMPEcho:           d.Get("icmp_echo").(bool),
+		ICMPEcho:           d.Get("icmp_echo").(string),
 		RouteAdvertisement: d.Get("advertize_route").(string),
 		TrafficGroup:       d.Get("traffic_group").(string),
 		AutoDelete:         d.Get("auto_delete").(bool),

@@ -14,6 +14,6 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 )
 
-replace github.com/f5devcentral/go-bigip => github.com/tpretz/go-bigip v1.0.1
+replace github.com/f5devcentral/go-bigip => github.com/tpretz/go-bigip v1.0.2
 
 go 1.13
