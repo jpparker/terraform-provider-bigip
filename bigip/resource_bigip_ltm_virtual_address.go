@@ -70,9 +70,9 @@ func resourceBigipLtmVirtualAddress() *schema.Resource {
 			},
 
 			"advertize_route": {
-				Type:        schema.TypeBool,
+				Type:        schema.TypeString,
 				Optional:    true,
-				Default:     false,
+				Default:     "selective",
 				Description: "Enabled dynamic routing of the address",
 			},
 
