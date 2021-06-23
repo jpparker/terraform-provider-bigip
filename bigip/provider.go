@@ -65,6 +65,7 @@ func Provider() terraform.ResourceProvider {
 			"bigip_net_route":                       resourceBigipNetRoute(),
 			"bigip_net_selfip":                      resourceBigipNetSelfIP(),
 			"bigip_net_vlan":                        resourceBigipNetVlan(),
+			"bigip_net_tunnel":                      resourceBigipNetTunnel(),
 			"bigip_ltm_irule":                       resourceBigipLtmIRule(),
 			"bigip_ltm_datagroup":                   resourceBigipLtmDataGroup(),
 			"bigip_ltm_monitor":                     resourceBigipLtmMonitor(),
